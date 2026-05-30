@@ -160,60 +160,177 @@ a { color: inherit; text-decoration: none; }
 /* The nav is now fixed, so give the page top breathing room under it. */
 .hero { scroll-margin-top: 80px; }
 
-/* ---------------- hero ---------------- */
+/* ---------------- hero (bright, hyped 2026 road-bike panel) ---------------- */
 .hero {
   position: relative;
-  /* extra top padding to clear the fixed nav + iOS safe area */
-  padding: calc(clamp(110px, 16vw, 200px) + env(safe-area-inset-top, 0px)) clamp(20px, 5vw, 48px) clamp(60px, 9vw, 120px);
-  max-width: var(--maxw);
+  padding: calc(clamp(90px, 13vw, 150px) + env(safe-area-inset-top, 0px)) clamp(14px, 3vw, 30px) 0;
+  max-width: 1240px;
   margin: 0 auto;
+}
+.hero-panel {
+  position: relative;
   overflow: hidden;
+  border-radius: clamp(20px, 3vw, 34px);
+  padding: clamp(40px, 6vw, 84px) clamp(24px, 5vw, 72px) clamp(70px, 9vw, 120px);
+  /* bright acid-lime gradient — the loud bit */
+  background:
+    radial-gradient(120% 130% at 12% 8%, #f4ff8a 0%, var(--accent) 34%, #b6e21f 72%, #7fae12 100%);
+  color: #0a0a0a;
+  box-shadow: 0 30px 90px -30px rgba(215, 255, 58, 0.5), inset 0 0 0 1px rgba(0,0,0,0.06);
 }
-.hero-glow {
+/* soft moving mesh-blob for depth */
+.hero-mesh {
   position: absolute;
-  top: -180px; left: 50%;
-  width: 720px; height: 720px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(215,255,58,0.16), transparent 62%);
+  inset: -30%;
+  background:
+    radial-gradient(40% 40% at 80% 20%, rgba(255,255,255,0.65), transparent 60%),
+    radial-gradient(35% 35% at 18% 85%, rgba(120,200,255,0.45), transparent 60%),
+    radial-gradient(30% 30% at 95% 90%, rgba(255,120,60,0.35), transparent 60%);
+  filter: blur(20px);
+  animation: heroMesh 16s ease-in-out infinite alternate;
   pointer-events: none;
-  filter: blur(8px);
 }
-.hero-inner { position: relative; max-width: 760px; }
+@keyframes heroMesh {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to   { transform: translate3d(4%, 3%, 0) scale(1.08); }
+}
+/* faint technical grid, like a geometry chart */
+.hero-grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  pointer-events: none;
+}
+/* big rotating chainring */
+.hero-ring {
+  position: absolute;
+  top: clamp(-40px, -3vw, -20px);
+  right: clamp(-60px, -4vw, -30px);
+  width: clamp(220px, 34vw, 460px);
+  height: clamp(220px, 34vw, 460px);
+  opacity: 0.16;
+  pointer-events: none;
+}
+.hero-ring-spin { transform-origin: 100px 100px; animation: ringSpin 26s linear infinite; }
+@keyframes ringSpin { to { transform: rotate(360deg); } }
+
+.hero-inner { position: relative; max-width: 820px; z-index: 2; }
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 0.78rem;
-  color: var(--accent);
-  font-weight: 600;
+  letter-spacing: 0.16em;
+  font-size: 0.74rem;
+  color: #0a0a0a;
+  font-weight: 700;
   margin-bottom: 22px;
+  background: rgba(10,10,10,0.08);
+  border: 1px solid rgba(10,10,10,0.18);
+  padding: 7px 14px;
+  border-radius: 999px;
 }
 .hero h1 {
-  font-size: clamp(2.8rem, 8vw, 5.2rem);
-  line-height: 1.02;
+  font-size: clamp(3rem, 9vw, 6.4rem);
+  line-height: 0.95;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+}
+/* the accent word becomes an outlined / display treatment on the bright panel */
+.hero h1 .accent {
+  color: transparent;
+  -webkit-text-stroke: 2px #0a0a0a;
+  text-stroke: 2px #0a0a0a;
 }
 .lede {
-  margin: 26px 0 34px;
-  font-size: clamp(1.02rem, 2vw, 1.2rem);
-  color: var(--text-dim);
-  max-width: 600px;
+  margin: 26px 0 36px;
+  font-size: clamp(1.04rem, 1.7vw, 1.26rem);
+  color: rgba(10, 10, 10, 0.78);
+  font-weight: 500;
+  max-width: 620px;
 }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; }
+/* on the bright panel the primary button inverts to black */
+.hero .btn-primary {
+  background: #0a0a0a;
+  color: var(--accent);
+  box-shadow: 0 10px 30px -8px rgba(0,0,0,0.5);
+}
+.hero .btn-primary:hover { background: #1c1c1c; transform: translateY(-2px); }
+.hero .btn-ghost {
+  border-color: rgba(10,10,10,0.35);
+  color: #0a0a0a;
+}
+.hero .btn-ghost:hover { border-color: #0a0a0a; background: rgba(10,10,10,0.06); color: #0a0a0a; }
+
 .hero-stats {
   display: flex;
-  gap: clamp(28px, 6vw, 60px);
-  margin-top: 56px;
-  border-top: 1px solid var(--line-soft);
-  padding-top: 30px;
+  gap: clamp(24px, 5vw, 56px);
+  margin-top: 48px;
+  border-top: 1px solid rgba(10,10,10,0.2);
+  padding-top: 28px;
 }
 .hero-stats div { display: flex; flex-direction: column; }
 .hero-stats strong {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 2.4rem;
-  color: var(--accent);
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  color: #0a0a0a;
   line-height: 1;
+  font-weight: 700;
 }
-.hero-stats span { color: var(--text-faint); font-size: 0.85rem; margin-top: 6px; }
+.hero-stats span {
+  color: rgba(10,10,10,0.62);
+  font-size: 0.82rem;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+/* road centre-line at the foot of the panel */
+.hero-road {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 26px;
+  background:
+    repeating-linear-gradient(90deg, #0a0a0a 0 38px, transparent 38px 70px) center/auto 5px no-repeat,
+    rgba(10,10,10,0.08);
+  border-top: 2px solid rgba(10,10,10,0.25);
+}
+
+/* scrolling marquee strip below the panel */
+.hero-marquee {
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #0a0a0a;
+  border: 1px solid var(--line);
+  padding: 11px 0;
+}
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  white-space: nowrap;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.86rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  animation: marquee 26s linear infinite;
+  will-change: transform;
+}
+.marquee-track .m-dot { color: var(--text-faint); }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ring-spin, .hero-mesh, .marquee-track { animation: none; }
+}
 
 /* ---------------- sections ---------------- */
 .section-title {

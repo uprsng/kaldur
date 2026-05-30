@@ -212,6 +212,32 @@ function applyI18n() {
 }
 
 /* ============================================================
+   0b. Hero chainring — build teeth + crank arms procedurally
+   ============================================================ */
+
+(function buildChainring() {
+  const teeth = document.getElementById("ring-teeth");
+  const arms = document.getElementById("ring-arms");
+  if (!teeth) return;
+  const cx = 100, cy = 100, R = 92, N = 44;
+  let tg = "";
+  for (let i = 0; i < N; i++) {
+    const a = (Math.PI * 2 * i) / N;
+    const x1 = cx + R * Math.cos(a), y1 = cy + R * Math.sin(a);
+    const x2 = cx + (R + 7) * Math.cos(a), y2 = cy + (R + 7) * Math.sin(a);
+    tg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  teeth.innerHTML = tg;
+  // five crank/spider arms from the centre out to the inner ring
+  let ag = "";
+  for (let i = 0; i < 5; i++) {
+    const a = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+    ag += `<line x1="${cx}" y1="${cy}" x2="${(cx + 34 * Math.cos(a)).toFixed(1)}" y2="${(cy + 34 * Math.sin(a)).toFixed(1)}" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round"/>`;
+  }
+  arms.innerHTML = ag;
+})();
+
+/* ============================================================
    1. Animated header — hide on scroll down, show on scroll up
    ============================================================ */
 

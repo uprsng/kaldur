@@ -34,23 +34,59 @@
 
   <!-- ====================== HERO ====================== -->
   <section id="top" class="hero">
-    <div class="hero-glow"></div>
-    <div class="hero-inner">
-      <p class="eyebrow" data-i18n="hero.eyebrow">Precision fitting · No studio required</p>
-      <h1 data-i18n-html="hero.h1">Your body sets the<br /><span class="accent">geometry.</span></h1>
-      <p class="lede" data-i18n="hero.lede">
-        Four measurements. Three riding philosophies. One position that fits you
-        perfectly. bikefit.me turns your height, inseam, torso and arm length into
-        a complete cockpit setup — saddle height, setback, reach, drop and stem.
-      </p>
-      <div class="hero-cta">
-        <a href="#fit" class="btn btn-primary" data-i18n="hero.cta1">Calculate my fit →</a>
-        <a href="#how" class="btn btn-ghost" data-i18n="hero.cta2">See how it works</a>
+    <div class="hero-panel">
+      <div class="hero-mesh" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+
+      <!-- big rotating chainring, road-bike philosophy motif -->
+      <svg class="hero-ring" viewBox="0 0 200 200" aria-hidden="true">
+        <g class="hero-ring-spin">
+          <circle cx="100" cy="100" r="92" fill="none" stroke="#0a0a0a" stroke-width="3"/>
+          <circle cx="100" cy="100" r="34" fill="none" stroke="#0a0a0a" stroke-width="3"/>
+          <circle cx="100" cy="100" r="10" fill="#0a0a0a"/>
+          <g id="ring-teeth"></g>
+          <g id="ring-arms"></g>
+        </g>
+      </svg>
+
+      <div class="hero-inner">
+        <p class="eyebrow" data-i18n="hero.eyebrow">Precision fitting · No studio required</p>
+        <h1 data-i18n-html="hero.h1">Your body sets the<br /><span class="accent">geometry.</span></h1>
+        <p class="lede" data-i18n="hero.lede">
+          Four measurements. Three riding philosophies. One position that fits you
+          perfectly. bikefit.me turns your height, inseam, torso and arm length into
+          a complete cockpit setup — saddle height, setback, reach, drop and stem.
+        </p>
+        <div class="hero-cta">
+          <a href="#fit" class="btn btn-primary" data-i18n="hero.cta1">Calculate my fit →</a>
+          <a href="#how" class="btn btn-ghost" data-i18n="hero.cta2">See how it works</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>4</strong><span data-i18n="hero.stat1">measurements</span></div>
+          <div><strong>3</strong><span data-i18n="hero.stat2">fit profiles</span></div>
+          <div><strong>6</strong><span data-i18n="hero.stat3">output values</span></div>
+        </div>
       </div>
-      <div class="hero-stats">
-        <div><strong>4</strong><span data-i18n="hero.stat1">measurements</span></div>
-        <div><strong>3</strong><span data-i18n="hero.stat2">fit profiles</span></div>
-        <div><strong>6</strong><span data-i18n="hero.stat3">output values</span></div>
+
+      <!-- road centre-line at the foot of the panel -->
+      <div class="hero-road" aria-hidden="true"></div>
+    </div>
+
+    <!-- scrolling marquee of cycling philosophy -->
+    <div class="hero-marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>WATTS PER KILO</span><span class="m-dot">•</span>
+        <span>SADDLE TO BAR DROP</span><span class="m-dot">•</span>
+        <span>STACK &amp; REACH</span><span class="m-dot">•</span>
+        <span>SUFFER IN STYLE</span><span class="m-dot">•</span>
+        <span>N+1</span><span class="m-dot">•</span>
+        <span>MARGINAL GAINS</span><span class="m-dot">•</span>
+        <span>WATTS PER KILO</span><span class="m-dot">•</span>
+        <span>SADDLE TO BAR DROP</span><span class="m-dot">•</span>
+        <span>STACK &amp; REACH</span><span class="m-dot">•</span>
+        <span>SUFFER IN STYLE</span><span class="m-dot">•</span>
+        <span>N+1</span><span class="m-dot">•</span>
+        <span>MARGINAL GAINS</span><span class="m-dot">•</span>
       </div>
     </div>
   </section>
