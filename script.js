@@ -81,7 +81,7 @@ const I18N = {
 
     // result rows
     "r.saddle.label": "Saddle height",
-    "r.saddle.note": "Bottom bracket centre to top of saddle, along the seat tube.",
+    "r.saddle.note": "Bottom bracket centre to top of saddle, along the seat tube. Add detailed measurements for an exact figure.",
     "r.saddle.note.adj": "Adjusted for your crank length and cleat stack.",
     "r.setback.label": "Saddle setback",
     "r.setback.note": "Saddle nose set behind the bottom bracket (horizontal).",
@@ -170,7 +170,7 @@ const I18N = {
     "result.headline": "Ваш фит: {name}",
 
     "r.saddle.label": "Высота седла",
-    "r.saddle.note": "От центра каретки до верха седла вдоль подседельной трубы.",
+    "r.saddle.note": "От центра каретки до верха седла вдоль подседельной трубы. Добавьте детальные замеры для точного значения.",
     "r.saddle.note.adj": "Скорректировано под длину шатуна и стек шипа.",
     "r.setback.label": "Вылет седла",
     "r.setback.note": "Нос седла за кареткой (по горизонтали).",
@@ -441,7 +441,9 @@ function calcFit(profileKey, inp) {
 
   // Bar width — always shown. Without detailed inputs it is approximated from
   // height; with a measured shoulder width it is recalculated and highlighted.
-  let barWidth = clampN(round((0.26 * height) * 10, 20), 360, 480); // approx from height
+  // Estimate shoulder width from height (~0.234 x height in cm), convert to mm
+  // and snap to the nearest 20mm bar size (38/40/42/44…).
+  let barWidth = clampN(round(0.234 * height * 10, 20), 380, 460); // approx from height
   let barAdjusted = false;
   let saddleAdjusted = false;
 
