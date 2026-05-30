@@ -206,7 +206,11 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n-html]").forEach((el) => {
     el.innerHTML = t(el.dataset.i18nHtml);
   });
-  recalc(); // results + bike labels are language-dependent
+  // The bike diagram is static, but its callout labels are translated, so it
+  // is (re)drawn here on init and on every language switch — never on input.
+  const bike = document.getElementById("bike-illu");
+  if (bike) bike.innerHTML = bikeSVG();
+  recalc(); // result grid values are language-dependent
 }
 
 /* ============================================================
@@ -424,7 +428,8 @@ function readInputs() {
 const round = (n, step = 1) => Math.round(n / step) * step;
 const clampN = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
-// Returns { values, items } so both the bike drawing and the grid stay in sync.
+// Returns { items } for the result grid. The bike diagram is static and does
+// not consume these values.
 function calcFit(profileKey, inp) {
   const p = PROFILES[profileKey];
   const { height, inseam, torso, arm } = inp;
@@ -467,86 +472,82 @@ function calcFit(profileKey, inp) {
     items.push({ label: t("r.effsaddle.label"), value: effSaddle, unit: "mm", note: t("r.effsaddle.note") });
   }
 
-  return {
-    items,
-    values: { saddleHeight, setback, frame, reach, drop, stem, barWidth, effSaddle },
-  };
+  return { items };
 }
 
 /* ============================================================
    5. Road-bike illustration (drawn from the calculated fit)
    ============================================================ */
 
-function bikeSVG(v) {
-  // Fixed schematic frame; overlays scale slightly with the computed numbers so
-  // the picture visibly responds to the fit. Same dashed-accent style as the
-  // body diagrams: measurement line + end ticks + labelled points.
-  const BBx = 250, BBy = 250;            // bottom bracket (crank centre)
-  const rearX = 110, frontX = 470, wheelY = 300, wheelR = 56;
+/* The road bike is a STATIC reference diagram — its geometry never changes
+   with the entered measurements. It illustrates *which* part of the bike each
+   calculated value refers to; the actual numbers live in the result grid
+   below. Only the label text is language-dependent (re-rendered on EN/RU). */
 
-  // saddle height -> seat height above BB (scaled), capped for the canvas
-  const seatLen = clampN((v.saddleHeight - 600) * 0.28 + 78, 70, 120);
-  const seatTopX = BBx - 16, seatTopY = BBy - seatLen;
-  // reach -> horizontal distance BB->bars; drop -> bars relative to saddle top
-  const reachPx = clampN((v.reach - 380) * 0.22 + 150, 110, 210);
-  const barX = BBx + reachPx;
-  const dropPx = v.drop * 0.20; // +below saddle
-  const barY = seatTopY + dropPx;
-  const headTopX = barX - 14, headTopY = barY;
+// Fixed schematic coordinates (canvas 560 x 360).
+const BB = { x: 250, y: 250 };           // bottom bracket / crank centre
+const SEAT = { x: 234, y: 152 };         // saddle top
+const BAR = { x: 404, y: 168 };          // handlebar centre
+const REAR = { x: 110, y: 300 };
+const FRONT = { x: 470, y: 300 };
+const WHEEL_R = 56;
+const SADDLE_HALF = 22;
+const SETBACK_PX = 14;
 
-  const saddleHalf = 22;
-  const setbackPx = clampN(v.setback * 0.10, 4, 22);
-
+function bikeSVG() {
+  const saddleNoseX = SEAT.x - SADDLE_HALF - SETBACK_PX;
   return `
-  <svg viewBox="0 0 560 360" role="img" aria-label="road bike fit">
+  <svg viewBox="0 0 560 360" role="img" aria-label="road bike fit reference">
     <!-- wheels -->
-    <circle class="bike-wheel" cx="${rearX}" cy="${wheelY}" r="${wheelR}"/>
-    <circle class="bike-wheel" cx="${frontX}" cy="${wheelY}" r="${wheelR}"/>
-    <circle class="bike-frame" cx="${rearX}" cy="${wheelY}" r="3"/>
-    <circle class="bike-frame" cx="${frontX}" cy="${wheelY}" r="3"/>
+    <circle class="bike-wheel" cx="${REAR.x}" cy="${REAR.y}" r="${WHEEL_R}"/>
+    <circle class="bike-wheel" cx="${FRONT.x}" cy="${FRONT.y}" r="${WHEEL_R}"/>
+    <circle class="bike-frame" cx="${REAR.x}" cy="${REAR.y}" r="3"/>
+    <circle class="bike-frame" cx="${FRONT.x}" cy="${FRONT.y}" r="3"/>
 
-    <!-- frame: BB -> rear axle, BB -> seat, seat -> rear, seat -> head, BB -> head, fork -->
+    <!-- frame -->
     <path class="bike-frame" d="
-      M${BBx} ${BBy} L${rearX} ${wheelY}
-      M${BBx} ${BBy} L${seatTopX} ${seatTopY}
-      M${seatTopX} ${seatTopY} L${rearX} ${wheelY}
-      M${seatTopX} ${seatTopY} L${headTopX} ${headTopY}
-      M${BBx} ${BBy} L${headTopX} ${headTopY}
-      M${headTopX} ${headTopY} L${frontX} ${wheelY}
+      M${BB.x} ${BB.y} L${REAR.x} ${REAR.y}
+      M${BB.x} ${BB.y} L${SEAT.x} ${SEAT.y}
+      M${SEAT.x} ${SEAT.y} L${REAR.x} ${REAR.y}
+      M${SEAT.x} ${SEAT.y} L${BAR.x} ${BAR.y}
+      M${BB.x} ${BB.y} L${BAR.x} ${BAR.y}
+      M${BAR.x} ${BAR.y} L${FRONT.x} ${FRONT.y}
     "/>
 
     <!-- saddle -->
-    <line class="bike-frame" x1="${seatTopX - saddleHalf - setbackPx}" y1="${seatTopY}" x2="${seatTopX + saddleHalf - setbackPx}" y2="${seatTopY}"/>
+    <line class="bike-frame" x1="${saddleNoseX}" y1="${SEAT.y}" x2="${SEAT.x + SADDLE_HALF - SETBACK_PX}" y2="${SEAT.y}"/>
     <!-- handlebar (drop bar) -->
-    <path class="bike-frame" d="M${headTopX - 4} ${headTopY} q22 0 22 18 q0 14 -14 18"/>
+    <path class="bike-frame" d="M${BAR.x - 4} ${BAR.y} q22 0 22 18 q0 14 -14 18"/>
     <!-- crank -->
-    <line class="bike-frame" x1="${BBx}" y1="${BBy}" x2="${BBx - 6}" y2="${BBy + 34}"/>
+    <line class="bike-frame" x1="${BB.x}" y1="${BB.y}" x2="${BB.x - 6}" y2="${BB.y + 34}"/>
 
-    <!-- ===== measurement overlays ===== -->
+    <!-- ===== measurement callouts (names only — static) ===== -->
 
     <!-- saddle height: BB -> saddle top -->
-    <line class="bike-measure" x1="${BBx}" y1="${BBy}" x2="${seatTopX}" y2="${seatTopY}"/>
-    ${bikePoint(BBx, BBy, "")}
-    ${bikePoint(seatTopX, seatTopY, "")}
-    ${bikeLabel((BBx + seatTopX) / 2 - 64, (BBy + seatTopY) / 2, `${t("r.saddle.label")}: ${v.saddleHeight}mm`)}
+    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${SEAT.x}" y2="${SEAT.y}"/>
+    ${bikePoint(BB.x, BB.y)}
+    ${bikePoint(SEAT.x, SEAT.y)}
+    ${bikeLabel((BB.x + SEAT.x) / 2 - 92, (BB.y + SEAT.y) / 2, t("r.saddle.label"))}
 
     <!-- reach: saddle top -> bars (horizontal) -->
-    <line class="bike-measure" x1="${seatTopX}" y1="${seatTopY - 24}" x2="${barX}" y2="${seatTopY - 24}"/>
-    <line class="bike-tick" x1="${seatTopX}" y1="${seatTopY - 30}" x2="${seatTopX}" y2="${seatTopY - 18}"/>
-    <line class="bike-tick" x1="${barX}" y1="${seatTopY - 30}" x2="${barX}" y2="${seatTopY - 18}"/>
-    ${bikeLabel((seatTopX + barX) / 2 - 36, seatTopY - 30, `${t("r.reach.label")}: ${v.reach}mm`)}
+    <line class="bike-measure" x1="${SEAT.x}" y1="${SEAT.y - 24}" x2="${BAR.x}" y2="${SEAT.y - 24}"/>
+    <line class="bike-tick" x1="${SEAT.x}" y1="${SEAT.y - 30}" x2="${SEAT.x}" y2="${SEAT.y - 18}"/>
+    <line class="bike-tick" x1="${BAR.x}" y1="${SEAT.y - 30}" x2="${BAR.x}" y2="${SEAT.y - 18}"/>
+    ${bikeLabel((SEAT.x + BAR.x) / 2 - 28, SEAT.y - 30, t("r.reach.label"))}
 
     <!-- drop: saddle top level -> bar level -->
-    <line class="bike-measure" x1="${barX + 18}" y1="${seatTopY}" x2="${barX + 18}" y2="${barY}"/>
-    <line class="bike-tick" x1="${barX + 12}" y1="${seatTopY}" x2="${barX + 24}" y2="${seatTopY}"/>
-    <line class="bike-tick" x1="${barX + 12}" y1="${barY}" x2="${barX + 24}" y2="${barY}"/>
-    ${bikeLabel(barX + 26, (seatTopY + barY) / 2 + 3, `${t("r.drop.label")}: ${Math.abs(v.drop)}mm`, null, "end-safe")}
+    <line class="bike-measure" x1="${BAR.x + 18}" y1="${SEAT.y}" x2="${BAR.x + 18}" y2="${BAR.y}"/>
+    <line class="bike-tick" x1="${BAR.x + 12}" y1="${SEAT.y}" x2="${BAR.x + 24}" y2="${SEAT.y}"/>
+    <line class="bike-tick" x1="${BAR.x + 12}" y1="${BAR.y}" x2="${BAR.x + 24}" y2="${BAR.y}"/>
+    ${bikeLabel(BAR.x + 28, (SEAT.y + BAR.y) / 2 + 3, t("r.drop.label"), null, "end-safe")}
 
     <!-- setback marker at saddle nose -->
-    ${bikePoint(seatTopX - saddleHalf - setbackPx, seatTopY, "")}
-    ${bikeLabel(seatTopX - saddleHalf - setbackPx - 78, seatTopY + 14, `${t("r.setback.label")}: ${v.setback}mm`)}
+    ${bikePoint(saddleNoseX, SEAT.y)}
+    ${bikeLabel(saddleNoseX - 96, SEAT.y - 8, t("r.setback.label"), null, "end-safe")}
 
-    ${detailedOn ? bikeDetailOverlay(v, BBx, BBy) : ""}
+    <!-- crank length callout (always shown on the static reference) -->
+    ${bikePoint(BB.x - 6, BB.y + 34)}
+    ${bikeLabel(BB.x + 14, BB.y + 30, t("m.crank.label"))}
   </svg>`;
 }
 
@@ -555,7 +556,7 @@ function bikePoint(x, y) {
           <circle class="bike-point" cx="${x}" cy="${y}" r="2.6"/>`;
 }
 function bikeLabel(x, y, text, w = null, mode = "start") {
-  // Auto-size background to text (~5px/char at 9px Space Grotesk) so labels
+  // Auto-size background to text (~4.9px/char at 9px Space Grotesk) so labels
   // never clip — important since RU strings are longer than EN.
   const width = w != null ? w : Math.round(text.length * 4.9 + 8);
   let bx = x - 3;
@@ -565,22 +566,13 @@ function bikeLabel(x, y, text, w = null, mode = "start") {
   return `<rect class="bike-label-bg" x="${bx}" y="${y - 9}" width="${width}" height="13" rx="3"/>
           <text class="bike-label" x="${bx + 3}" y="${y}">${text}</text>`;
 }
-function bikeDetailOverlay(v, BBx, BBy) {
-  // crank length drawn from BB downward + extra labels for detailed values
-  const crankPx = 34;
-  return `
-    <line class="bike-measure" x1="${BBx}" y1="${BBy}" x2="${BBx - 6}" y2="${BBy + crankPx}"/>
-    ${bikePoint(BBx - 6, BBy + crankPx, "")}
-    ${bikeLabel(BBx - 8, BBy + crankPx + 18, `${t("r.bar.label")}: ${v.barWidth}mm`)}
-    ${bikeLabel(BBx + 16, BBy + 22, `${t("r.effsaddle.label")}: ${v.effSaddle}mm`)}`;
-}
 
 /* ============================================================
    6. Render
    ============================================================ */
 
 function recalc() {
-  const { items, values } = calcFit(activeProfile, readInputs());
+  const { items } = calcFit(activeProfile, readInputs());
 
   const name = t("profile." + activeProfile);
   const headlineEl = document.getElementById("result-headline");
@@ -593,9 +585,6 @@ function recalc() {
   }
   const blurbEl = document.getElementById("result-profile-blurb");
   if (blurbEl) blurbEl.textContent = t("blurb." + activeProfile);
-
-  const bike = document.getElementById("bike-illu");
-  if (bike) bike.innerHTML = bikeSVG(values);
 
   const grid = document.getElementById("result-grid");
   if (grid) {
