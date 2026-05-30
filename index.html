@@ -34,22 +34,16 @@
 
   <!-- ====================== HERO ====================== -->
   <section id="top" class="hero">
-    <div class="hero-panel">
-      <div class="hero-mesh" aria-hidden="true"></div>
-      <div class="hero-grid-lines" aria-hidden="true"></div>
+    <!-- animated gradient mesh backdrop -->
+    <div class="hero-aura" aria-hidden="true">
+      <span class="aura aura-lime"></span>
+      <span class="aura aura-cyan"></span>
+      <span class="aura aura-violet"></span>
+    </div>
+    <div class="hero-veil" aria-hidden="true"></div>
 
-      <!-- big rotating chainring, road-bike philosophy motif -->
-      <svg class="hero-ring" viewBox="0 0 200 200" aria-hidden="true">
-        <g class="hero-ring-spin">
-          <circle cx="100" cy="100" r="92" fill="none" stroke="#0a0a0a" stroke-width="3"/>
-          <circle cx="100" cy="100" r="34" fill="none" stroke="#0a0a0a" stroke-width="3"/>
-          <circle cx="100" cy="100" r="10" fill="#0a0a0a"/>
-          <g id="ring-teeth"></g>
-          <g id="ring-arms"></g>
-        </g>
-      </svg>
-
-      <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-copy">
         <p class="eyebrow" data-i18n="hero.eyebrow">Precision fitting · No studio required</p>
         <h1 data-i18n-html="hero.h1">Your body sets the<br /><span class="accent">geometry.</span></h1>
         <p class="lede" data-i18n="hero.lede">
@@ -68,8 +62,26 @@
         </div>
       </div>
 
-      <!-- road centre-line at the foot of the panel -->
-      <div class="hero-road" aria-hidden="true"></div>
+      <!-- floating clay/neumorphic fit-preview card -->
+      <aside class="hero-card" aria-hidden="true">
+        <div class="hero-card-head">
+          <svg class="hero-ring" viewBox="0 0 200 200">
+            <g class="hero-ring-spin">
+              <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="3"/>
+              <circle cx="100" cy="100" r="34" fill="none" stroke="currentColor" stroke-width="3"/>
+              <circle cx="100" cy="100" r="10" fill="currentColor"/>
+              <g id="ring-teeth"></g>
+              <g id="ring-arms"></g>
+            </g>
+          </svg>
+          <span class="hero-card-tag">SAMPLE FIT</span>
+        </div>
+        <div class="hero-card-rows">
+          <div class="hcr"><span>Saddle height</span><strong>742<em>mm</em></strong></div>
+          <div class="hcr"><span>Handlebar reach</span><strong>545<em>mm</em></strong></div>
+          <div class="hcr"><span>Bar drop</span><strong>62<em>mm</em></strong></div>
+        </div>
+      </aside>
     </div>
 
     <!-- scrolling marquee of cycling philosophy -->
