@@ -1,0 +1,129 @@
+name: Deploy bikefit.me
+
+# Deploys the static site to the server over SSH whenever the site files
+# change on the deploy branch, or when run manually from the Actions tab.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   SSH_PRIVATE_KEY  - the OpenSSH private key (full PEM, including header/footer)
+#   SSH_PASSPHRASE   - passphrase for that key (omit if the key has none)
+#
+# Optional repository variables (Settings -> Secrets and variables -> Actions -> Variables):
+#   SSH_HOST  (default 185.227.111.59)
+#   SSH_PORT  (default 8822)
+#   SSH_USER  (default root)
+#   WEBROOT   (default /var/www/bikefit)
+
+on:
+  push:
+    branches:
+      - claude/bikefit-me-website-Pfle1
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "script.js"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-bikefit
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST || '185.227.111.59' }}
+      SSH_PORT: ${{ vars.SSH_PORT || '8822' }}
+      SSH_USER: ${{ vars.SSH_USER || 'root' }}
+      WEBROOT: ${{ vars.WEBROOT || '/var/www/bikefit' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Strip the passphrase into a key the non-interactive ssh can use.
+          if [ -n "${{ secrets.SSH_PASSPHRASE }}" ]; then
+            ssh-keygen -p -P "${{ secrets.SSH_PASSPHRASE }}" -N "" -f ~/.ssh/deploy_key
+          fi
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Provision nginx and web root
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" "WEBROOT='$WEBROOT' bash -s" <<'REMOTE'
+          set -e
+          if ! command -v nginx >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            if command -v apt-get >/dev/null 2>&1; then apt-get update -y && apt-get install -y nginx;
+            elif command -v dnf >/dev/null 2>&1; then dnf install -y nginx;
+            elif command -v yum >/dev/null 2>&1; then yum install -y nginx; fi
+          fi
+          mkdir -p "$WEBROOT"
+          REMOTE
+
+      - name: Upload site files
+        run: |
+          scp -i ~/.ssh/deploy_key -P "$SSH_PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            index.html styles.css script.js \
+            "$SSH_USER@$SSH_HOST:$WEBROOT/"
+
+      - name: Configure nginx and reload
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" "WEBROOT='$WEBROOT' bash -s" <<'REMOTE'
+          set -e
+          chown -R www-data:www-data "$WEBROOT" 2>/dev/null || true
+          chmod -R 755 "$WEBROOT"
+
+          CONF=/etc/nginx/conf.d/bikefit.conf
+          if [ -d /etc/nginx/sites-available ]; then
+            CONF=/etc/nginx/sites-available/bikefit
+          fi
+          cat > "$CONF" <<NGINX
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+              server_name _;
+              root $WEBROOT;
+              index index.html;
+              location / { try_files \$uri \$uri/ /index.html; }
+          }
+          NGINX
+
+          if [ -d /etc/nginx/sites-enabled ]; then
+            ln -sf /etc/nginx/sites-available/bikefit /etc/nginx/sites-enabled/bikefit
+            rm -f /etc/nginx/sites-enabled/default
+          fi
+
+          nginx -t
+          systemctl enable nginx 2>/dev/null || true
+          systemctl restart nginx 2>/dev/null || service nginx restart || nginx -s reload
+
+          # Open the firewall for HTTP if one is active.
+          if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -qi active; then
+            ufw allow 80/tcp || true
+          fi
+          if command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state >/dev/null 2>&1; then
+            firewall-cmd --permanent --add-service=http || true
+            firewall-cmd --reload || true
+          fi
+          REMOTE
+
+      - name: Smoke test
+        run: |
+          code=$(ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/")
+          echo "Local HTTP status on server: $code"
+          test "$code" = "200"
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
