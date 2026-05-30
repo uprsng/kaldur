@@ -82,10 +82,9 @@ const I18N = {
     // result rows
     "r.saddle.label": "Saddle height",
     "r.saddle.note": "Bottom bracket centre to top of saddle, along the seat tube.",
+    "r.saddle.note.adj": "Adjusted for your crank length and cleat stack.",
     "r.setback.label": "Saddle setback",
     "r.setback.note": "Saddle nose set behind the bottom bracket (horizontal).",
-    "r.frame.label": "Frame size",
-    "r.frame.note": "Suggested road seat-tube length (centre-to-top).",
     "r.reach.label": "Handlebar reach",
     "r.reach.note": "Horizontal saddle nose to handlebar centre — your cockpit.",
     "r.drop.label": "Bar drop",
@@ -95,9 +94,9 @@ const I18N = {
     "r.stem.label": "Stem length",
     "r.stem.note": "Starting stem length to dial in the reach above.",
     "r.bar.label": "Bar width",
-    "r.bar.note": "Centre-to-centre handlebar width from your shoulders.",
-    "r.effsaddle.label": "Eff. saddle height",
-    "r.effsaddle.note": "Saddle height adjusted for crank length and cleat stack.",
+    "r.bar.note.approx": "Estimated from your height. Add detailed measurements for an exact figure.",
+    "r.bar.note.adj": "Centre-to-centre handlebar width from your measured shoulders.",
+    "r.adjusted": "adjusted",
   },
 
   ru: {
@@ -172,10 +171,9 @@ const I18N = {
 
     "r.saddle.label": "Высота седла",
     "r.saddle.note": "От центра каретки до верха седла вдоль подседельной трубы.",
+    "r.saddle.note.adj": "Скорректировано под длину шатуна и стек шипа.",
     "r.setback.label": "Вылет седла",
     "r.setback.note": "Нос седла за кареткой (по горизонтали).",
-    "r.frame.label": "Размер рамы",
-    "r.frame.note": "Рекомендуемая длина подседельной трубы (центр-верх).",
     "r.reach.label": "Вылет до руля",
     "r.reach.note": "Горизонталь от носа седла до центра руля — ваш кокпит.",
     "r.drop.label": "Перепад руля",
@@ -185,9 +183,9 @@ const I18N = {
     "r.stem.label": "Длина выноса",
     "r.stem.note": "Стартовая длина выноса для настройки вылета выше.",
     "r.bar.label": "Ширина руля",
-    "r.bar.note": "Ширина руля (центр-центр) по вашим плечам.",
-    "r.effsaddle.label": "Эфф. высота седла",
-    "r.effsaddle.note": "Высота седла с учётом длины шатуна и стека шипа.",
+    "r.bar.note.approx": "Оценка по вашему росту. Добавьте детальные замеры для точного значения.",
+    "r.bar.note.adj": "Ширина руля (центр-центр) по вашим измеренным плечам.",
+    "r.adjusted": "уточнено",
   },
 };
 
@@ -435,12 +433,27 @@ function calcFit(profileKey, inp) {
   const { height, inseam, torso, arm } = inp;
   const reachArm = torso + arm;
 
-  const saddleHeight = round(inseam * p.saddle * 10); // mm
+  let saddleHeight = round(inseam * p.saddle * 10); // mm
   const setback = round(inseam * p.setback * 10); // mm
-  const frame = (inseam * 0.65).toFixed(1); // cm
   const reach = round(reachArm * p.reach * 10, 5); // mm
   const drop = round(height * p.drop * 10); // mm (+below / -above)
   const stem = clampN(round(reachArm * p.stem, 5), 70, 140); // mm
+
+  // Bar width — always shown. Without detailed inputs it is approximated from
+  // height; with a measured shoulder width it is recalculated and highlighted.
+  let barWidth = clampN(round((0.26 * height) * 10, 20), 360, 480); // approx from height
+  let barAdjusted = false;
+  let saddleAdjusted = false;
+
+  if (detailedOn) {
+    const { crank, cleat, shoulder } = inp;
+    // Measured shoulder width -> nearest 20mm bar (38/40/42/44…)
+    barWidth = clampN(round(shoulder * 10, 20), 360, 480);
+    barAdjusted = true;
+    // Saddle height adjusted for crank length (vs 172.5 ref) and cleat stack.
+    saddleHeight = round(saddleHeight - (crank - 172.5) + cleat);
+    saddleAdjusted = true;
+  }
 
   const dropText =
     drop > 0 ? t("r.drop.below", { v: drop })
@@ -448,29 +461,25 @@ function calcFit(profileKey, inp) {
     : t("r.drop.level");
 
   const items = [
-    { label: t("r.saddle.label"), value: saddleHeight, unit: "mm", note: t("r.saddle.note") },
+    {
+      label: t("r.saddle.label"),
+      value: saddleHeight,
+      unit: "mm",
+      note: saddleAdjusted ? t("r.saddle.note.adj") : t("r.saddle.note"),
+      adjusted: saddleAdjusted,
+    },
+    {
+      label: t("r.bar.label"),
+      value: barWidth,
+      unit: "mm",
+      note: barAdjusted ? t("r.bar.note.adj") : t("r.bar.note.approx"),
+      adjusted: barAdjusted,
+    },
     { label: t("r.setback.label"), value: setback, unit: "mm", note: t("r.setback.note") },
-    { label: t("r.frame.label"), value: frame, unit: "cm", note: t("r.frame.note") },
     { label: t("r.reach.label"), value: reach, unit: "mm", note: t("r.reach.note") },
     { label: t("r.drop.label"), value: Math.abs(drop), unit: "mm", note: dropText },
     { label: t("r.stem.label"), value: stem, unit: "mm", note: t("r.stem.note") },
   ];
-
-  // Detailed extras
-  let barWidth = null;
-  let effSaddle = saddleHeight;
-  if (detailedOn) {
-    const { crank, cleat, shoulder } = inp;
-    // Handlebar width ≈ shoulder width, rounded to nearest 20mm (38/40/42/44…)
-    barWidth = clampN(round(shoulder * 10, 20), 360, 480);
-    // Effective saddle height accounts for crank length (relative to a 172.5 ref)
-    // and cleat stack: longer cranks raise the foot at BDC, so lower the saddle;
-    // extra cleat stack adds reach to the pedal, so raise the saddle.
-    effSaddle = round(saddleHeight - (crank - 172.5) + cleat);
-
-    items.push({ label: t("r.bar.label"), value: barWidth, unit: "mm", note: t("r.bar.note") });
-    items.push({ label: t("r.effsaddle.label"), value: effSaddle, unit: "mm", note: t("r.effsaddle.note") });
-  }
 
   return { items };
 }
@@ -627,8 +636,10 @@ function recalc() {
     grid.innerHTML = items
       .map(
         (it) => `
-        <div class="result-item">
-          <div class="result-label">${it.label}</div>
+        <div class="result-item${it.adjusted ? " is-adjusted" : ""}">
+          <div class="result-label">${it.label}${
+            it.adjusted ? `<span class="adj-badge">${t("r.adjusted")}</span>` : ""
+          }</div>
           <div class="result-value">${it.value}<span class="ru">${it.unit}</span></div>
           <div class="result-note">${it.note}</div>
         </div>`
