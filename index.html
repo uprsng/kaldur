@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bikefit.me — Find your perfect riding position</title>
+  <meta name="description" content="bikefit.me — calculate your perfect bike fit from your body measurements. Endurance, aero and relaxed positions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0a0a'/%3E%3Ctext x='50' y='68' font-size='60' text-anchor='middle' fill='%23d7ff3a' font-family='sans-serif' font-weight='bold'%3Eb%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- ====================== NAV ====================== -->
+  <header class="nav">
+    <a href="#top" class="brand">
+      <span class="brand-mark">b</span>
+      <span class="brand-name">bikefit<span class="dot">.me</span></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#measure">Measurements</a>
+      <a href="#fit" class="btn btn-ghost">Get my fit</a>
+    </nav>
+  </header>
+
+  <!-- ====================== HERO ====================== -->
+  <section id="top" class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <p class="eyebrow">Precision fitting · No studio required</p>
+      <h1>Your body sets the<br /><span class="accent">geometry.</span></h1>
+      <p class="lede">
+        Four measurements. Three riding philosophies. One position that fits you
+        perfectly. bikefit.me turns your height, inseam, torso and arm length into
+        a complete cockpit setup — saddle height, setback, reach, drop and stem.
+      </p>
+      <div class="hero-cta">
+        <a href="#fit" class="btn btn-primary">Calculate my fit →</a>
+        <a href="#how" class="btn btn-ghost">See how it works</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>4</strong><span>measurements</span></div>
+        <div><strong>3</strong><span>fit profiles</span></div>
+        <div><strong>6</strong><span>output values</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== HOW IT WORKS ====================== -->
+  <section id="how" class="how">
+    <h2 class="section-title">How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <h3>Measure</h3>
+        <p>Grab a tape measure and a wall. Each field below shows exactly where to measure — start point to end point.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <h3>Choose a vibe</h3>
+        <p>Endurance, aero or relaxed. Each profile shifts your position to match how and how long you ride.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <h3>Get your numbers</h3>
+        <p>Instant cockpit setup you can dial into any bike — in millimetres, ready to translate to the workshop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== FIT TOOL ====================== -->
+  <section id="fit" class="fit">
+    <h2 class="section-title" id="measure">Your measurements</h2>
+    <p class="section-sub">
+      Stand barefoot against a wall for the best accuracy. Drag the slider or type
+      the exact value in centimetres.
+    </p>
+
+    <form id="fit-form" class="fit-grid">
+
+      <!-- HEIGHT -->
+      <article class="measure-card">
+        <div class="measure-illu" data-illu="height"></div>
+        <div class="measure-control">
+          <label for="height">Height</label>
+          <p class="measure-hint">From the <b>floor</b> (heels together) to the <b>top of your head</b>. Stand tall against a wall.</p>
+          <div class="slider-row">
+            <input type="range" id="height" min="140" max="210" value="178" step="0.5" />
+            <div class="value-box">
+              <input type="number" id="height-num" min="140" max="210" value="178" step="0.5" />
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- INSEAM -->
+      <article class="measure-card">
+        <div class="measure-illu" data-illu="inseam"></div>
+        <div class="measure-control">
+          <label for="inseam">Inseam</label>
+          <p class="measure-hint">From the <b>floor</b> up to your <b>crotch</b> — press a book up between your legs like a saddle and measure to its top edge.</p>
+          <div class="slider-row">
+            <input type="range" id="inseam" min="60" max="100" value="84" step="0.5" />
+            <div class="value-box">
+              <input type="number" id="inseam-num" min="60" max="100" value="84" step="0.5" />
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- TORSO -->
+      <article class="measure-card">
+        <div class="measure-illu" data-illu="torso"></div>
+        <div class="measure-control">
+          <label for="torso">Torso</label>
+          <p class="measure-hint">From the <b>top of your hip bone</b> up to the <b>sternal notch</b> (the dip at the base of your throat), measured along the front.</p>
+          <div class="slider-row">
+            <input type="range" id="torso" min="40" max="75" value="58" step="0.5" />
+            <div class="value-box">
+              <input type="number" id="torso-num" min="40" max="75" value="58" step="0.5" />
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ARM -->
+      <article class="measure-card">
+        <div class="measure-illu" data-illu="arm"></div>
+        <div class="measure-control">
+          <label for="arm">Arm</label>
+          <p class="measure-hint">From the <b>tip of your shoulder</b> (acromion) down to the <b>wrist crease</b>, arm relaxed and slightly bent.</p>
+          <div class="slider-row">
+            <input type="range" id="arm" min="45" max="80" value="62" step="0.5" />
+            <div class="value-box">
+              <input type="number" id="arm-num" min="45" max="80" value="62" step="0.5" />
+              <span class="unit">cm</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </form>
+
+    <!-- PROFILE TABS -->
+    <div class="profiles">
+      <h3 class="profiles-title">Choose your riding profile</h3>
+      <div class="profile-tabs" role="tablist">
+        <button type="button" class="profile-tab is-active" data-profile="endurance" role="tab">
+          <span class="pt-name">Endurance</span>
+          <span class="pt-desc">Balanced · all-day comfort</span>
+        </button>
+        <button type="button" class="profile-tab" data-profile="aero" role="tab">
+          <span class="pt-name">Aero</span>
+          <span class="pt-desc">Low &amp; fast · racing</span>
+        </button>
+        <button type="button" class="profile-tab" data-profile="relaxed" role="tab">
+          <span class="pt-name">Relaxed</span>
+          <span class="pt-desc">Upright · easy on the back</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results" id="results">
+      <div class="result-headline">
+        <h3>Your <span id="result-profile-name" class="accent">endurance</span> fit</h3>
+        <p id="result-profile-blurb" class="result-blurb"></p>
+      </div>
+      <div class="result-grid" id="result-grid"><!-- filled by JS --></div>
+      <p class="disclaimer">
+        These figures are calculated estimates to get you 90% of the way to a great
+        position. Treat them as a starting point, ride a few sessions, and fine-tune
+        for comfort. For medical conditions or persistent pain, see a professional
+        bike fitter.
+      </p>
+    </div>
+  </section>
+
+  <!-- ====================== FOOTER ====================== -->
+  <footer class="footer">
+    <div class="footer-brand">
+      <span class="brand-mark">b</span>
+      <span class="brand-name">bikefit<span class="dot">.me</span></span>
+    </div>
+    <p>Built for riders who'd rather be on the bike. © 2026 bikefit.me</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
