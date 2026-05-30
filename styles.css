@@ -66,12 +66,17 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------------- nav ---------------- */
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Animated show/hide on scroll. */
+  transition: transform .35s cubic-bezier(.4, 0, .2, 1), background .3s ease;
+  will-change: transform;
   /* Pad into the iOS safe area so content clears Safari's translucent toolbar
      and the notch / Dynamic Island. Falls back to plain values on other browsers. */
   padding-top: calc(14px + env(safe-area-inset-top, 0px));
@@ -115,6 +120,45 @@ a { color: inherit; text-decoration: none; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a:not(.btn) { color: var(--text-dim); font-size: 0.95rem; transition: color .2s; }
 .nav-links a:not(.btn):hover { color: var(--text); }
+
+/* Hidden state — slides up out of view (animated via transition above).
+   Account for the safe-area strip so it fully clears on notched iPhones. */
+.nav.nav-hidden {
+  transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));
+}
+/* Slightly more opaque once the user has scrolled past the top. */
+.nav.nav-scrolled {
+  background: rgba(10, 10, 10, 0.78);
+}
+
+/* Language switch (replaces the old "Get my fit" button) */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elev);
+}
+.lang-opt {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease;
+}
+.lang-opt:hover { color: var(--text); }
+.lang-opt.is-active { background: var(--accent); color: #0a0a0a; }
+
+/* The nav is now fixed, so give the page top breathing room under it. */
+.hero { scroll-margin-top: 80px; }
 
 /* ---------------- hero ---------------- */
 .hero {
@@ -217,6 +261,40 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+/* ---- detailed-fit toggle + collapsible panel ---- */
+.btn-detail {
+  margin-top: 22px;
+  border: 1px dashed var(--line);
+  color: var(--text);
+  background: transparent;
+}
+.btn-detail:hover { border-color: var(--accent); color: var(--accent); }
+.btn-detail .detail-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform .3s ease;
+}
+.btn-detail[aria-expanded="true"] .detail-icon { transform: rotate(45deg); }
+
+.detail-wrap {
+  margin-top: 20px;
+  overflow: hidden;
+}
+/* Animate open/close via max-height + opacity. */
+.detail-wrap:not([hidden]) {
+  animation: detail-in .4s ease both;
+}
+@keyframes detail-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .measure-card {
   display: flex;
@@ -357,6 +435,34 @@ input[type="range"]::-moz-range-thumb {
 .result-headline h3 { font-size: 1.7rem; }
 .result-headline h3 .accent { text-transform: capitalize; }
 .result-blurb { color: var(--text-dim); margin-top: 6px; max-width: 620px; }
+
+/* ---- road-bike illustration ---- */
+.bike-figure {
+  margin: 28px 0 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  padding: 18px clamp(14px, 3vw, 28px) 14px;
+}
+.bike-illu svg { width: 100%; height: auto; display: block; }
+.bike-figure figcaption {
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  text-align: center;
+  margin-top: 8px;
+}
+/* same illustration vocabulary as the body diagrams */
+.bike-frame { fill: none; stroke: #3a3a3a; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.bike-wheel { fill: none; stroke: #3a3a3a; stroke-width: 2.4; }
+.bike-rider { fill: none; stroke: #555; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 3 3; }
+/* highlighted measurement overlays — accent, dashed, with end ticks */
+.bike-measure { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 5 4; }
+.bike-tick { stroke: var(--accent); stroke-width: 2.4; }
+.bike-point { fill: var(--accent); }
+.bike-point-ring { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0.5; }
+.bike-label { fill: var(--accent); font: 600 9px "Space Grotesk", sans-serif; }
+.bike-label-bg { fill: var(--bg-elev); opacity: 0.85; }
+
 .result-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
