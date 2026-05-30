@@ -452,9 +452,18 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 8px;
 }
 /* same illustration vocabulary as the body diagrams */
-.bike-frame { fill: none; stroke: #3a3a3a; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
-.bike-wheel { fill: none; stroke: #3a3a3a; stroke-width: 2.4; }
-.bike-rider { fill: none; stroke: #555; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 3 3; }
+.bike-tyre { fill: none; stroke: #4a4a4a; stroke-width: 5; }
+.bike-rim { fill: none; stroke: #333; stroke-width: 1.6; }
+.bike-spoke { stroke: #2c2c2c; stroke-width: 1; }
+.bike-hub { fill: #3a3a3a; }
+.bike-frame { fill: none; stroke: #b9b9b9; stroke-width: 5.5; stroke-linejoin: round; stroke-linecap: round; }
+.bike-fork { fill: none; stroke: #b9b9b9; stroke-width: 4.5; stroke-linecap: round; }
+.bike-bar { fill: none; stroke: #8f8f8f; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.bike-saddle { fill: #8f8f8f; stroke: #8f8f8f; stroke-width: 2; stroke-linejoin: round; }
+.bike-chainring { fill: none; stroke: #6f6f6f; stroke-width: 2; }
+.bike-crank { fill: none; stroke: #9a9a9a; stroke-width: 4; stroke-linecap: round; }
+.bike-detail { fill: none; stroke: #6f6f6f; stroke-width: 2.4; stroke-linecap: round; }
+.bike-frame-pt { fill: #8f8f8f; }
 /* highlighted measurement overlays — accent, dashed, with end ticks */
 .bike-measure { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 5 4; }
 .bike-tick { stroke: var(--accent); stroke-width: 2.4; }

@@ -484,70 +484,106 @@ function calcFit(profileKey, inp) {
    calculated value refers to; the actual numbers live in the result grid
    below. Only the label text is language-dependent (re-rendered on EN/RU). */
 
-// Fixed schematic coordinates (canvas 560 x 360).
-const BB = { x: 250, y: 250 };           // bottom bracket / crank centre
-const SEAT = { x: 234, y: 152 };         // saddle top
-const BAR = { x: 404, y: 168 };          // handlebar centre
-const REAR = { x: 110, y: 300 };
-const FRONT = { x: 470, y: 300 };
-const WHEEL_R = 56;
-const SADDLE_HALF = 22;
-const SETBACK_PX = 14;
+/* Fixed road-bike geometry (canvas 600 x 360), proportioned from a real
+   ~56cm road bike scaled at ~0.30 px/mm: equal 700c wheels, ~73.5° seat
+   angle, ~72.5° head angle, gently sloping top tube, BB dropped below the
+   axle line, fork offset, crank ~172.5mm. */
+const RA = { x: 150, y: 228 };   // rear axle
+const FA = { x: 448, y: 228 };   // front axle
+const WR = 100;                  // wheel (tyre) radius
+const BB = { x: 271, y: 249 };   // bottom bracket (below axle line)
+const STJ = { x: 224, y: 88 };   // seat tube / top tube junction
+const SAD = { x: 209, y: 44 };   // saddle top (reference point)
+const HTT = { x: 388, y: 75 };   // top of head tube (stem clamp)
+const FC = { x: 403, y: 121 };   // fork crown / bottom of head tube
+const BAR = { x: 420, y: 70 };   // handlebar clamp (top of bars)
+const PEDAL = { x: 283, y: 300 }; // pedal axle (end of crank)
+const SADNOSE = { x: 236, y: 47 }; // saddle nose (front tip)
+
+function spokes(cx, cy, r, n = 9) {
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
+    s += `<line class="bike-spoke" x1="${cx}" y1="${cy}" x2="${(cx + r * Math.cos(a)).toFixed(1)}" y2="${(cy + r * Math.sin(a)).toFixed(1)}"/>`;
+  }
+  return s;
+}
 
 function bikeSVG() {
-  const saddleNoseX = SEAT.x - SADDLE_HALF - SETBACK_PX;
   return `
-  <svg viewBox="0 0 560 360" role="img" aria-label="road bike fit reference">
-    <!-- wheels -->
-    <circle class="bike-wheel" cx="${REAR.x}" cy="${REAR.y}" r="${WHEEL_R}"/>
-    <circle class="bike-wheel" cx="${FRONT.x}" cy="${FRONT.y}" r="${WHEEL_R}"/>
-    <circle class="bike-frame" cx="${REAR.x}" cy="${REAR.y}" r="3"/>
-    <circle class="bike-frame" cx="${FRONT.x}" cy="${FRONT.y}" r="3"/>
+  <svg viewBox="0 0 600 360" role="img" aria-label="road bike fit reference">
+    <!-- ===== wheels (tyre + rim + spokes + hub) ===== -->
+    ${spokes(RA.x, RA.y, WR - 8)}
+    ${spokes(FA.x, FA.y, WR - 8)}
+    <circle class="bike-tyre" cx="${RA.x}" cy="${RA.y}" r="${WR}"/>
+    <circle class="bike-rim"  cx="${RA.x}" cy="${RA.y}" r="${WR - 8}"/>
+    <circle class="bike-tyre" cx="${FA.x}" cy="${FA.y}" r="${WR}"/>
+    <circle class="bike-rim"  cx="${FA.x}" cy="${FA.y}" r="${WR - 8}"/>
 
-    <!-- frame -->
+    <!-- chain: chainring -> rear cassette -->
+    <line class="bike-detail" x1="${BB.x}" y1="${BB.y - 18}" x2="${RA.x}" y2="${RA.y - 7}"/>
+    <line class="bike-detail" x1="${BB.x}" y1="${BB.y + 18}" x2="${RA.x}" y2="${RA.y + 1}"/>
+    <circle class="bike-chainring" cx="${RA.x}" cy="${RA.y}" r="9"/>
+
+    <!-- ===== frame: double triangle ===== -->
     <path class="bike-frame" d="
-      M${BB.x} ${BB.y} L${REAR.x} ${REAR.y}
-      M${BB.x} ${BB.y} L${SEAT.x} ${SEAT.y}
-      M${SEAT.x} ${SEAT.y} L${REAR.x} ${REAR.y}
-      M${SEAT.x} ${SEAT.y} L${BAR.x} ${BAR.y}
-      M${BB.x} ${BB.y} L${BAR.x} ${BAR.y}
-      M${BAR.x} ${BAR.y} L${FRONT.x} ${FRONT.y}
+      M${BB.x} ${BB.y} L${STJ.x} ${STJ.y}
+      M${STJ.x} ${STJ.y} L${HTT.x} ${HTT.y}
+      M${BB.x} ${BB.y} L${FC.x} ${FC.y}
+      M${HTT.x} ${HTT.y} L${FC.x} ${FC.y}
+      M${BB.x} ${BB.y} L${RA.x} ${RA.y}
+      M${STJ.x} ${STJ.y} L${RA.x} ${RA.y}
     "/>
+    <!-- seatpost -->
+    <line class="bike-frame" x1="${STJ.x}" y1="${STJ.y}" x2="${SAD.x + 4}" y2="${SAD.y + 6}"/>
+    <!-- fork -->
+    <path class="bike-fork" d="M${FC.x} ${FC.y} L${FA.x} ${FA.y}"/>
+    <!-- steerer + stem -->
+    <line class="bike-fork" x1="${HTT.x}" y1="${HTT.y}" x2="${HTT.x - 2}" y2="${HTT.y - 8}"/>
+    <line class="bike-bar"  x1="${HTT.x - 2}" y1="${HTT.y - 7}" x2="${BAR.x}" y2="${BAR.y}"/>
+
+    <!-- drop handlebar (side profile) -->
+    <path class="bike-bar" d="M${BAR.x - 8} ${BAR.y} L${BAR.x + 6} ${BAR.y} q13 0 14 13 q1 13 -9 18 q-10 4 -11 -6"/>
+
+    <!-- chainring + crank + pedal -->
+    <circle class="bike-chainring" cx="${BB.x}" cy="${BB.y}" r="20"/>
+    <line class="bike-crank" x1="${BB.x}" y1="${BB.y}" x2="${PEDAL.x}" y2="${PEDAL.y}"/>
+    <line class="bike-bar" x1="${PEDAL.x - 8}" y1="${PEDAL.y}" x2="${PEDAL.x + 8}" y2="${PEDAL.y}"/>
 
     <!-- saddle -->
-    <line class="bike-frame" x1="${saddleNoseX}" y1="${SEAT.y}" x2="${SEAT.x + SADDLE_HALF - SETBACK_PX}" y2="${SEAT.y}"/>
-    <!-- handlebar (drop bar) -->
-    <path class="bike-frame" d="M${BAR.x - 4} ${BAR.y} q22 0 22 18 q0 14 -14 18"/>
-    <!-- crank -->
-    <line class="bike-frame" x1="${BB.x}" y1="${BB.y}" x2="${BB.x - 6}" y2="${BB.y + 34}"/>
+    <path class="bike-saddle" d="M190 41 Q210 37 ${SADNOSE.x} ${SADNOSE.y - 1} Q242 47 233 50 Q210 53 197 50 Q188 49 190 41 Z"/>
 
     <!-- ===== measurement callouts (names only — static) ===== -->
 
     <!-- saddle height: BB -> saddle top -->
-    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${SEAT.x}" y2="${SEAT.y}"/>
+    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${SAD.x}" y2="${SAD.y}"/>
     ${bikePoint(BB.x, BB.y)}
-    ${bikePoint(SEAT.x, SEAT.y)}
-    ${bikeLabel((BB.x + SEAT.x) / 2 - 92, (BB.y + SEAT.y) / 2, t("r.saddle.label"))}
+    ${bikePoint(SAD.x, SAD.y)}
+    ${bikeLabel(96, 168, t("r.saddle.label"))}
 
-    <!-- reach: saddle top -> bars (horizontal) -->
-    <line class="bike-measure" x1="${SEAT.x}" y1="${SEAT.y - 24}" x2="${BAR.x}" y2="${SEAT.y - 24}"/>
-    <line class="bike-tick" x1="${SEAT.x}" y1="${SEAT.y - 30}" x2="${SEAT.x}" y2="${SEAT.y - 18}"/>
-    <line class="bike-tick" x1="${BAR.x}" y1="${SEAT.y - 30}" x2="${BAR.x}" y2="${SEAT.y - 18}"/>
-    ${bikeLabel((SEAT.x + BAR.x) / 2 - 28, SEAT.y - 30, t("r.reach.label"))}
+    <!-- handlebar reach: saddle top -> bars (horizontal) -->
+    <line class="bike-measure" x1="${SAD.x}" y1="22" x2="${BAR.x}" y2="22"/>
+    <line class="bike-tick" x1="${SAD.x}" y1="16" x2="${SAD.x}" y2="28"/>
+    <line class="bike-tick" x1="${BAR.x}" y1="16" x2="${BAR.x}" y2="28"/>
+    ${bikeLabel((SAD.x + BAR.x) / 2 - 30, 14, t("r.reach.label"))}
 
-    <!-- drop: saddle top level -> bar level -->
-    <line class="bike-measure" x1="${BAR.x + 18}" y1="${SEAT.y}" x2="${BAR.x + 18}" y2="${BAR.y}"/>
-    <line class="bike-tick" x1="${BAR.x + 12}" y1="${SEAT.y}" x2="${BAR.x + 24}" y2="${SEAT.y}"/>
-    <line class="bike-tick" x1="${BAR.x + 12}" y1="${BAR.y}" x2="${BAR.x + 24}" y2="${BAR.y}"/>
-    ${bikeLabel(BAR.x + 28, (SEAT.y + BAR.y) / 2 + 3, t("r.drop.label"), null, "end-safe")}
+    <!-- bar drop: saddle level -> bar level -->
+    <line class="bike-measure" x1="${BAR.x + 22}" y1="${SAD.y}" x2="${BAR.x + 22}" y2="${BAR.y}"/>
+    <line class="bike-tick" x1="${BAR.x + 16}" y1="${SAD.y}" x2="${BAR.x + 28}" y2="${SAD.y}"/>
+    <line class="bike-tick" x1="${BAR.x + 16}" y1="${BAR.y}" x2="${BAR.x + 28}" y2="${BAR.y}"/>
+    ${bikeLabel(BAR.x + 32, (SAD.y + BAR.y) / 2 + 3, t("r.drop.label"), null, "end-safe")}
 
-    <!-- setback marker at saddle nose -->
-    ${bikePoint(saddleNoseX, SEAT.y)}
-    ${bikeLabel(saddleNoseX - 96, SEAT.y - 8, t("r.setback.label"), null, "end-safe")}
+    <!-- saddle setback: BB plumb line -> saddle nose -->
+    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${BB.x}" y2="40"/>
+    <line class="bike-measure" x1="${BB.x}" y1="40" x2="${SADNOSE.x}" y2="40"/>
+    <line class="bike-tick" x1="${SADNOSE.x}" y1="34" x2="${SADNOSE.x}" y2="46"/>
+    ${bikePoint(SADNOSE.x, SADNOSE.y)}
+    ${bikeLabel(255, 36, t("r.setback.label"))}
 
-    <!-- crank length callout (always shown on the static reference) -->
-    ${bikePoint(BB.x - 6, BB.y + 34)}
-    ${bikeLabel(BB.x + 14, BB.y + 30, t("m.crank.label"))}
+    <!-- crank length: BB -> pedal -->
+    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${PEDAL.x}" y2="${PEDAL.y}"/>
+    ${bikePoint(PEDAL.x, PEDAL.y)}
+    ${bikeLabel(PEDAL.x + 12, PEDAL.y - 2, t("m.crank.label"))}
   </svg>`;
 }
 
