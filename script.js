@@ -527,11 +527,11 @@ function calcFit(profileKey, inp) {
    Anchor points below are calibrated to pixel features of the photo in that
    600 x 375 space. Only the label text is language-dependent (re-rendered). */
 const IMG_W = 600, IMG_H = 375;
-const BB = { x: 300, y: 263 };     // bottom bracket = chainring centre
+const BB = { x: 274, y: 249 };     // bottom bracket = chainring centre
 const SAD = { x: 213, y: 46 };     // saddle centre
 const SADNOSE = { x: 243, y: 49 }; // saddle nose (front edge)
 const BAR = { x: 460, y: 60 };     // handlebar (top of bars / hoods)
-const PEDAL = { x: 347, y: 257 };  // pedal axle = end of crank arm
+const PEDAL = { x: 321, y: 257 };  // pedal axle = end of crank arm
 
 function bikeSVG() {
   const reachY = 30;            // horizontal reach guide, above the bike
@@ -549,7 +549,7 @@ function bikeSVG() {
     <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${SAD.x}" y2="${SAD.y}"/>
     ${bikePoint(BB.x, BB.y)}
     ${bikePoint(SAD.x, SAD.y)}
-    ${bikeLabel(60, 150, t("r.saddle.label"))}
+    ${bikeLabel(165, 150, t("r.saddle.label"))}
 
     <!-- handlebar reach: saddle nose -> bars (horizontal) -->
     <line class="bike-measure" x1="${SAD.x}" y1="${reachY}" x2="${BAR.x}" y2="${reachY}"/>
