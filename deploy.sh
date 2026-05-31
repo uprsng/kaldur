@@ -27,11 +27,14 @@ SCP="scp -i $KEY -P $PORT -o StrictHostKeyChecking=accept-new"
 
 here="$(cd "$(dirname "$0")" && pwd)"
 
-echo ">> Creating web root $WEBROOT on $HOST ..."
-$SSH "mkdir -p '$WEBROOT'"
+echo ">> Creating web root $WEBROOT (and assets/) on $HOST ..."
+$SSH "mkdir -p '$WEBROOT/assets'"
 
 echo ">> Copying site files ..."
 $SCP "$here/index.html" "$here/styles.css" "$here/script.js" "$USER@$HOST:$WEBROOT/"
+
+echo ">> Copying assets ..."
+$SCP -r "$here/assets/." "$USER@$HOST:$WEBROOT/assets/"
 
 echo ">> Installing & configuring nginx ..."
 $SSH "bash -s" <<EOF
