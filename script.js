@@ -527,11 +527,11 @@ function calcFit(profileKey, inp) {
    Anchor points below are calibrated to pixel features of the photo in that
    600 x 375 space. Only the label text is language-dependent (re-rendered). */
 const IMG_W = 600, IMG_H = 375;
-const BB = { x: 274, y: 259 };     // bottom bracket / crank centre
-const SAD = { x: 201, y: 44 };     // saddle top
-const SADNOSE = { x: 231, y: 46 }; // saddle nose (front tip)
+const BB = { x: 300, y: 263 };     // bottom bracket = chainring centre
+const SAD = { x: 213, y: 46 };     // saddle centre
+const SADNOSE = { x: 243, y: 49 }; // saddle nose (front edge)
 const BAR = { x: 460, y: 60 };     // handlebar (top of bars / hoods)
-const PEDAL = { x: 308, y: 316 };  // pedal axle (end of crank)
+const PEDAL = { x: 347, y: 257 };  // pedal axle = end of crank arm
 
 function bikeSVG() {
   const reachY = 30;            // horizontal reach guide, above the bike
