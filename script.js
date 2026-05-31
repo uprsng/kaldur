@@ -63,6 +63,8 @@ const I18N = {
     "p.relaxed.name": "Relaxed",
     "p.relaxed.desc": "Upright · easy on the back",
     "bike.caption": "Your fit on a road bike",
+    "bike.reach": "Reach",
+    "bike.stack": "Stack",
     "disclaimer":
       "These figures are calculated estimates to get you 90% of the way to a great position. Treat them as a starting point, ride a few sessions, and fine-tune for comfort. For medical conditions or persistent pain, see a professional bike fitter.",
     "footer.tag": "Built for riders who'd rather be on the bike. © 2026 bikefit.me",
@@ -85,12 +87,10 @@ const I18N = {
     "r.saddle.note.adj": "Adjusted for your crank length and cleat stack.",
     "r.setback.label": "Saddle setback",
     "r.setback.note": "Saddle nose set behind the bottom bracket (horizontal).",
-    "r.reach.label": "Handlebar reach",
-    "r.reach.note": "Horizontal saddle nose to handlebar centre — your cockpit.",
-    "r.drop.label": "Bar drop",
-    "r.drop.below": "{v} mm below saddle",
-    "r.drop.above": "{v} mm above saddle",
-    "r.drop.level": "level with saddle",
+    "r.reach.label": "Reach",
+    "r.reach.note": "Frame reach — horizontal from the bottom bracket to the top of the head tube.",
+    "r.stack.label": "Stack",
+    "r.stack.note": "Frame stack — vertical from the bottom bracket to the top of the head tube.",
     "r.stem.label": "Stem length",
     "r.stem.note": "Starting stem length to dial in the reach above.",
     "r.bar.label": "Bar width",
@@ -154,6 +154,8 @@ const I18N = {
     "p.relaxed.name": "Расслабленный",
     "p.relaxed.desc": "Прямая посадка · бережёт спину",
     "bike.caption": "Ваш фит на шоссейном велосипеде",
+    "bike.reach": "Рич",
+    "bike.stack": "Стек",
     "disclaimer":
       "Эти значения — расчётные оценки, которые приближают вас к отличной посадке на 90%. Используйте их как отправную точку, прокатитесь несколько раз и подстройте под комфорт. При болях или заболеваниях обратитесь к профессиональному байкфиттеру.",
     "footer.tag": "Сделано для тех, кто предпочитает быть в седле. © 2026 bikefit.me",
@@ -174,12 +176,10 @@ const I18N = {
     "r.saddle.note.adj": "Скорректировано под длину шатуна и стек шипа.",
     "r.setback.label": "Вылет седла",
     "r.setback.note": "Нос седла за кареткой (по горизонтали).",
-    "r.reach.label": "Вылет до руля",
-    "r.reach.note": "Горизонталь от носа седла до центра руля — ваш кокпит.",
-    "r.drop.label": "Перепад руля",
-    "r.drop.below": "{v} мм ниже седла",
-    "r.drop.above": "{v} мм выше седла",
-    "r.drop.level": "на уровне седла",
+    "r.reach.label": "Рич",
+    "r.reach.note": "Рич рамы — горизонталь от каретки до верха рулевой трубы.",
+    "r.stack.label": "Стек",
+    "r.stack.note": "Стек рамы — вертикаль от каретки до верха рулевой трубы.",
     "r.stem.label": "Длина выноса",
     "r.stem.note": "Стартовая длина выноса для настройки вылета выше.",
     "r.bar.label": "Ширина руля",
@@ -433,9 +433,12 @@ detailToggle.addEventListener("click", () => {
    ============================================================ */
 
 const PROFILES = {
-  endurance: { setback: 0.075, reach: 0.505, drop: 0.035, stem: 0.82, saddle: 0.883 },
-  aero:      { setback: 0.06,  reach: 0.53,  drop: 0.065, stem: 0.92, saddle: 0.885 },
-  relaxed:   { setback: 0.085, reach: 0.48,  drop: -0.005, stem: 0.72, saddle: 0.88 },
+  // fReach/fStack: frame Reach & Stack factors (x (torso+arm) and x (inseam+torso))
+  // tuned so an average rider lands on realistic frame geometry, with the aero
+  // profile longer & lower and the relaxed profile shorter & taller.
+  endurance: { setback: 0.075, reach: 0.505, drop: 0.035, stem: 0.82, saddle: 0.883, fReach: 3.23, fStack: 4.08 },
+  aero:      { setback: 0.06,  reach: 0.53,  drop: 0.065, stem: 0.92, saddle: 0.885, fReach: 3.39, fStack: 3.80 },
+  relaxed:   { setback: 0.085, reach: 0.48,  drop: -0.005, stem: 0.72, saddle: 0.88, fReach: 3.07, fStack: 4.45 },
 };
 
 let activeProfile = "endurance";
@@ -461,8 +464,6 @@ function calcFit(profileKey, inp) {
 
   let saddleHeight = round(inseam * p.saddle * 10); // mm
   const setback = round(inseam * p.setback * 10); // mm
-  const reach = round(reachArm * p.reach * 10, 5); // mm
-  const drop = round(height * p.drop * 10); // mm (+below / -above)
   const stem = clampN(round(reachArm * p.stem, 5), 70, 140); // mm
 
   // Bar width — always shown. Without detailed inputs it is approximated from
@@ -483,10 +484,12 @@ function calcFit(profileKey, inp) {
     saddleAdjusted = true;
   }
 
-  const dropText =
-    drop > 0 ? t("r.drop.below", { v: drop })
-    : drop < 0 ? t("r.drop.above", { v: Math.abs(drop) })
-    : t("r.drop.level");
+  // Frame geometry: Reach (horizontal) and Stack (vertical) from the bottom
+  // bracket to the top of the head tube — exactly the lines drawn on the
+  // diagram. Estimated from body proportions per profile; these are frame
+  // properties, so they are NOT affected by the crank/cleat detail tweaks.
+  const frameReach = clampN(round((torso + arm) * p.fReach), 360, 430);
+  const frameStack = clampN(round((inseam + torso) * p.fStack), 510, 650);
 
   const items = [
     {
@@ -504,8 +507,8 @@ function calcFit(profileKey, inp) {
       adjusted: barAdjusted,
     },
     { label: t("r.setback.label"), value: setback, unit: "mm", note: t("r.setback.note") },
-    { label: t("r.reach.label"), value: reach, unit: "mm", note: t("r.reach.note") },
-    { label: t("r.drop.label"), value: Math.abs(drop), unit: "mm", note: dropText },
+    { label: t("r.reach.label"), value: frameReach, unit: "mm", note: t("r.reach.note") },
+    { label: t("r.stack.label"), value: frameStack, unit: "mm", note: t("r.stack.note") },
     { label: t("r.stem.label"), value: stem, unit: "mm", note: t("r.stem.note") },
   ];
 
@@ -530,13 +533,11 @@ const IMG_W = 600, IMG_H = 375;
 const BB = { x: 274, y: 249 };     // bottom bracket = chainring centre
 const SAD = { x: 213, y: 46 };     // saddle centre
 const SADNOSE = { x: 243, y: 49 }; // saddle nose (front edge)
-const BAR = { x: 460, y: 60 };     // handlebar (top of bars / hoods)
+const HEADTOP = { x: 375, y: 94 }; // top of head tube (for reach & stack)
 const PEDAL = { x: 321, y: 257 };  // pedal axle = end of crank arm
 
 function bikeSVG() {
-  const reachY = 30;            // horizontal reach guide, above the bike
   const setbackY = 42;          // horizontal setback guide, above the saddle
-  const dropX = BAR.x + 30;     // vertical drop guide, right of the bars
   return `
   <svg viewBox="0 0 ${IMG_W} ${IMG_H}" role="img" aria-label="road bike fit reference">
     <!-- the bike photo -->
@@ -551,17 +552,17 @@ function bikeSVG() {
     ${bikePoint(SAD.x, SAD.y)}
     ${bikeLabel(165, 150, t("r.saddle.label"))}
 
-    <!-- handlebar reach: saddle nose -> bars (horizontal) -->
-    <line class="bike-measure" x1="${SAD.x}" y1="${reachY}" x2="${BAR.x}" y2="${reachY}"/>
-    <line class="bike-tick" x1="${SAD.x}" y1="${reachY - 6}" x2="${SAD.x}" y2="${reachY + 6}"/>
-    <line class="bike-tick" x1="${BAR.x}" y1="${reachY - 6}" x2="${BAR.x}" y2="${reachY + 6}"/>
-    ${bikeLabel((SAD.x + BAR.x) / 2 - 30, reachY - 8, t("r.reach.label"))}
+    <!-- stack: vertical from BB up to the top-of-head-tube height -->
+    <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${BB.x}" y2="${HEADTOP.y}"/>
+    <line class="bike-tick" x1="${BB.x - 7}" y1="${HEADTOP.y}" x2="${BB.x + 7}" y2="${HEADTOP.y}"/>
+    ${bikeLabel(BB.x + 9, (BB.y + HEADTOP.y) / 2 + 3, t("bike.stack"))}
 
-    <!-- bar drop: saddle level -> bar level -->
-    <line class="bike-measure" x1="${dropX}" y1="${SAD.y}" x2="${dropX}" y2="${BAR.y}"/>
-    <line class="bike-tick" x1="${dropX - 6}" y1="${SAD.y}" x2="${dropX + 6}" y2="${SAD.y}"/>
-    <line class="bike-tick" x1="${dropX - 6}" y1="${BAR.y}" x2="${dropX + 6}" y2="${BAR.y}"/>
-    ${bikeLabel(dropX + 10, (SAD.y + BAR.y) / 2 + 3, t("r.drop.label"), null, "end-safe")}
+    <!-- reach: horizontal from the BB axis to the top of the head tube -->
+    <line class="bike-measure" x1="${BB.x}" y1="${HEADTOP.y}" x2="${HEADTOP.x}" y2="${HEADTOP.y}"/>
+    <line class="bike-tick" x1="${HEADTOP.x}" y1="${HEADTOP.y - 7}" x2="${HEADTOP.x}" y2="${HEADTOP.y + 7}"/>
+    ${bikePoint(BB.x, HEADTOP.y)}
+    ${bikePoint(HEADTOP.x, HEADTOP.y)}
+    ${bikeLabel((BB.x + HEADTOP.x) / 2 - 16, HEADTOP.y - 8, t("bike.reach"))}
 
     <!-- saddle setback: BB plumb line -> saddle nose -->
     <line class="bike-measure" x1="${BB.x}" y1="${BB.y}" x2="${BB.x}" y2="${setbackY}"/>
