@@ -16,10 +16,9 @@ body measurements and get a complete cockpit setup for three riding profiles:
   exact **FROM -> TO** points (e.g. floor -> crotch for inseam).
 - **Live fit calculations** for endurance, aero and relaxed positions:
   - Saddle height
+  - Bar width
   - Saddle setback
-  - Frame size
-  - Handlebar reach
-  - Bar drop
+  - Frame reach & stack (bottom bracket → top of head tube)
   - Stem length
 
 ## Run it
@@ -42,7 +41,7 @@ python3 -m http.server 8000
 ## A note on the numbers
 
 The figures are calculated estimates (saddle height uses the classic LeMond
-inseam × 0.883 method; reach, drop, setback and stem are derived from torso, arm
-and height with per-profile factors). They get you most of the way to a great
-position — treat them as a starting point and fine-tune on the bike. For pain or
-medical conditions, see a professional fitter.
+inseam × 0.883 method; frame reach & stack, setback and stem are derived from
+torso, arm, inseam and height with per-profile factors). They get you most of
+the way to a great position — treat them as a starting point and fine-tune on
+the bike. For pain or medical conditions, see a professional fitter.
